@@ -1,0 +1,12 @@
+Our first input language will look like this:
+
+program   ::== (program <pasm-stmt>* retval)
+pasm-stmt ::== (set! ident val)
+          ::== (set! ident1 (binop ident1 val))
+retval    ::== (return val)
+val       ::== NUMBER | BOOLEAN | IDENTIFIER
+binop     ::== + | - | *
+
+Not all of this is currently enforced in the parser. For example, to make life a bit easier, we actually parse pasm-stmt with the rule (set! val val), even though it makes no sense to say something like (set! 7 3). So we either need to be stricter about what we parse, or just add a check at parse time to ensure that the type of the first argument to a set! is an identifier. In addition, the first version of the actual compiler is going to assume that all identifiers are actually register names! We could enforce this in the lexer if we really wanted, but that's a whole lot of effort for something that isn't going to last for very long. (Eventually, we'll add some sort of register type, but until we write a register allocator, we'll trust that our programmers are handling register allocation themselves.)
+
+We're still missing a ton of stuff. The big ones are conditionals, jumps, and memory operations. Right now, all we can do is basic arithmetic in a parenthesized assembly language.
