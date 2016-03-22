@@ -1,4 +1,4 @@
-Our first input language will look like this:
+Current input language:
 
 program   ::== (program <pasm-stmt>* retval)
 pasm-stmt ::== (set! ident val)
