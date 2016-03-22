@@ -7,12 +7,12 @@ else
 	LIBS += -lfl
 endif
 
-all: parser
+all: compiler
 
-parser: parser.y parser.l pasm.c pasm.h
+compiler: parser.y parser.l pasm.c pasm.h compiler.c
 	bison -vd parser.y
 	flex parser.l
-	$(CC) $(CFLAGS) -o $@ parser.tab.c lex.yy.c pasm.c $(LIBS)
+	$(CC) $(CFLAGS) -o $@ parser.tab.c lex.yy.c pasm.c compiler.c $(LIBS)
 
 test: parser sample.ss
 	./parser < sample.ss
@@ -23,3 +23,4 @@ clean:
 	rm -rf parser.dSYM
 	rm -f parser.output
 	rm -f parser
+	rm -f compiler

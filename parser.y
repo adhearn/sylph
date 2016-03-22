@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include "pasm.h"
+#include "compiler.h"
 %}
 
 %union {
@@ -14,6 +15,8 @@
     char *str;
     int integer;
 }
+
+//%parse-param {struct Program *prog}
 
 %start program
 %token PROGRAM
@@ -34,16 +37,19 @@
 %type   <integer>       NUMBER BOOLEAN
 
 %%
-program:        LPAR PROGRAM retval RPAR { printf("PROGRAM (no pasm-list)\n"); $$ = make_program(NULL, $3); }
-        |       LPAR PROGRAM pasm-list retval RPAR { printf("PROGRAM\n"); $$ = make_program($3, $4); }
+program:        LPAR PROGRAM retval RPAR { $$ = make_program(NULL, $3);; }
+|       LPAR PROGRAM pasm-list retval RPAR { $$ = make_program($3, $4); prog = $$;}
 ;
 
 pasm-list:  pasm-stmt { printf("pasm-list\n"); $$ = make_pstmt_l($1); }
 /*               |   pasm-stmt pasm-list { printf("pasm-list\n"); struct Pstmt_l *ls = make_pstmt_l($1); ls->next = $2; $$ = ls; } */
-|   pasm-list pasm-stmt { printf("pasm-list\n"); struct Pstmt_l *ls = make_pstmt_l($2); $1->next = ls; $$ = $1; }
+|   pasm-list pasm-stmt { printf("pasm-list\n");
+   struct Pstmt_l *ls = make_pstmt_l($2);
+   Pstmt_l_append($1, ls);
+   $$ = $1; }
 ;
 
-retval:         LPAR RETURN val RPAR { printf("retval\n"); }
+retval:         LPAR RETURN val RPAR { printf("retval\n"); $$ = make_retval($3);}
 ;
 
 pasm-stmt: LPAR SETBANG val rval RPAR { printf("pasm-stmt\n"); $$ = make_pstmt($3, $4); }
@@ -55,14 +61,10 @@ rval: val { printf("rval\n"); $$ = make_value_rvalue($1); }
 
 val:    NUMBER { printf("NUMBER\n"); $$ = make_integer_value($1);}
 |       BOOLEAN { printf("BOOLEAN\n"); $$ = make_boolean_value($1);}
-|       IDENTIFIER { printf("IDENTIFIER\n"); $$ = make_identifier_value($1);}
+|       IDENTIFIER { printf("IDENTIFIER\n"); $$ = make_identifier_value($1); printf("%s\n", $1);}
 ;
 
 %%
-int main(int argc, char **argv) {
-    yyparse();
-    return 0;
-}
 
 int yyerror (char *s) {
     fprintf(stderr, "error: %s\n", s);

@@ -70,5 +70,5 @@ void free_pstmt(struct Pstmt *pstmt);
 struct Pstmt_l *make_pstmt_l(struct Pstmt *pstmt);
 void free_pstmt_l(struct Pstmt_l *ls);
 struct Program *make_program(struct Pstmt_l *body, struct Retval *retval);
-
+void print_program(struct Program *prog);
 #endif

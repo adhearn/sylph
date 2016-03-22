@@ -139,6 +139,14 @@ struct Pstmt_l *make_pstmt_l(struct Pstmt *pstmt) {
     return ls;
 }
 
+void Pstmt_l_append(struct Pstmt_l *ls, struct Pstmt_l *pstmt) {
+  while (ls->next != NULL) {
+    ls = ls->next;
+  }
+
+  ls->next = pstmt;
+}
+
 void free_pstmt_l(struct Pstmt_l *ls) {
     if (ls->next != NULL) {
         free_pstmt_l(ls->next);
@@ -156,4 +164,60 @@ struct Program *make_program(struct Pstmt_l *body, struct Retval *retval) {
     program->body = body;
     program->retval = retval;
     return program;
+}
+
+void print_value(struct Value *value) {
+  switch (value->type) {
+  case BOOLEAN_T:
+    0;
+    char *str = value->value.ival ? "#t" : "#f";
+    printf("%s", str);
+    break;
+  case INTEGER_T:
+    printf("%d", value->value.ival);
+    break;
+  case IDENTIFIER_T:
+    printf("%s", value->value.sval);
+    break;
+  }
+}
+
+void print_binop(struct Binop *binop) {
+  printf("(%s ", binop->rator);
+  print_value(binop->val1);
+  printf(" ");
+  print_value(binop->val2);
+  printf(")");
+}
+
+void print_rvalue(struct Rvalue *rvalue) {
+  if (rvalue->type == BINOP_T) {
+    print_binop(rvalue->value.binop);
+  } else {
+    print_value(rvalue->value.value);
+  }
+}
+
+void print_pstmt(struct Pstmt *pstmt) {
+  printf("SET! %s ", pstmt->identifier);
+  print_rvalue(pstmt->rval);
+}
+
+void print_retval(struct Retval *retval) {
+  printf("RETURN ");
+  print_value(retval->value);
+}
+
+void print_program(struct Program *prog) {
+  printf("PROGRAM\n");
+  struct Pstmt_l *ls = prog->body;
+
+  while(ls != NULL) {
+    print_pstmt(ls->pstmt);
+    printf("\n");
+    ls = ls->next;
+  }
+
+  print_retval(prog->retval);
+  printf("\n");
 }

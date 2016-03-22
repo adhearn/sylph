@@ -16,7 +16,7 @@
 "("  { return LPAR; }
 ")"  { return RPAR; }
 [0-9]+ { yylval.integer = atoi(yytext); return NUMBER; }
-[a-zA-Z]+ { yylval.str = strdup(yytext); return IDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9]* { yylval.str = strdup(yytext) ; return IDENTIFIER; }
 [ \t\n\r] { /* ignore whitespace */ }
 . { printf("bad input character: '%s' at line %d\n", yytext, yylineno); }
 %%

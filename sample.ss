@@ -1,1 +1,6 @@
-(program (set! rbx 5) (set! rax 10) (set! rax (+ rax rbx)) (return rax))
+(program (set! r8 (+ 3 4))
+         (set! r8 (+ r8 12))
+         (set! r9 r8)
+         (set! r9 (* r9 12))
+         (set! rax r9)
+         (return rax))
