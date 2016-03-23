@@ -40,7 +40,7 @@ struct Retval {
 
 struct Pstmt {
     char *identifier;
-    struct Rvalue *rval;
+    struct Rvalue *rvalue;
 };
 
 struct Pstmt_l {

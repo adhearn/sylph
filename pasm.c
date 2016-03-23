@@ -118,13 +118,13 @@ struct Pstmt *make_pstmt(struct Value *value, struct Rvalue *rval) {
         exit(2);
     }
     pstmt->identifier = value->value.sval;
-    pstmt->rval = rval;
+    pstmt->rvalue = rval;
     return pstmt;
 }
 
 void free_pstmt(struct Pstmt *pstmt) {
     free(pstmt->identifier);
-    free_rvalue(pstmt->rval);
+    free_rvalue(pstmt->rvalue);
     free(pstmt);
 }
 
@@ -200,7 +200,7 @@ void print_rvalue(struct Rvalue *rvalue) {
 
 void print_pstmt(struct Pstmt *pstmt) {
   printf("SET! %s ", pstmt->identifier);
-  print_rvalue(pstmt->rval);
+  print_rvalue(pstmt->rvalue);
 }
 
 void print_retval(struct Retval *retval) {

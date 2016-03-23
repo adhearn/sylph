@@ -14,8 +14,8 @@ compiler: parser.y parser.l pasm.c pasm.h compiler.c
 	flex parser.l
 	$(CC) $(CFLAGS) -o $@ parser.tab.c lex.yy.c pasm.c compiler.c $(LIBS)
 
-test: parser sample.ss
-	./parser < sample.ss
+test: compiler sample.ss
+	./compiler < sample.ss
 
 clean:
 	rm -f lex.yy.c
