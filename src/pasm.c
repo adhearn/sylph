@@ -32,6 +32,13 @@ struct Value *make_identifier_value(char *val) {
     return value;
 }
 
+struct Value *make_label_value(char *val) {
+    struct Value *value = make_value();
+    value->type = LABEL_T;
+    value->value.sval = val;
+    return value;
+}
+
 void free_value(struct Value *val) {
     if (val->type == IDENTIFIER_T) {
         free(val->value.sval);
@@ -177,6 +184,9 @@ void print_value(struct Value *value) {
     printf("%d", value->value.ival);
     break;
   case IDENTIFIER_T:
+    printf("%s", value->value.sval);
+    break;
+  case LABEL_T:
     printf("%s", value->value.sval);
     break;
   }

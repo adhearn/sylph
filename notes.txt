@@ -1,12 +1,52 @@
-Current input language:
+Current Input Language:
 
-program   ::== (program <pasm-stmt>* retval)
-pasm-stmt ::== (set! ident val)
-          ::== (set! ident1 (binop ident1 val))
-retval    ::== (return val)
-val       ::== NUMBER | BOOLEAN | IDENTIFIER
-binop     ::== + | - | *
+Program   ==:: (letrec ((var l-expr)* ...) var)
+L-Expr    ==:: (lambda (var* ...) value)
+Value     ==:: (if Predicate Value Value)
+             | (begin Effect* ... Value)
+             | (primcall vprim Value* ...) ;
+             | (Value Value* ...)
+             | SimpleVal
+Predicate ==:: (if Predicate Predicate Predicate)
+             | (begin Effect* ... Predicate)
+             | (primcall pprim Value* ...)
+             | (true)
+             | (false)
+Effect    ==:: (set! var Value)
+             | (if Predicate Effect Effect)
+             | (begin Effect* ... Effect)
+             | (primcall eprim Value* ...)
+SimpleVal ==:: var
+             | (quote constant)
+constant  ==:: integer
+             | boolean
 
-Not all of this is currently enforced in the parser. For example, to make life a bit easier, we actually parse pasm-stmt with the rule (set! val val), even though it makes no sense to say something like (set! 7 3). So we either need to be stricter about what we parse, or just add a check at parse time to ensure that the type of the first argument to a set! is an identifier. In addition, the first version of the actual compiler is going to assume that all identifiers are actually register names! We could enforce this in the lexer if we really wanted, but that's a whole lot of effort for something that isn't going to last for very long. (Eventually, we'll add some sort of register type, but until we write a register allocator, we'll trust that our programmers are handling register allocation themselves.)
+Our next step is to flatten the input, so that it looks like 3 address code (i.e. most statements are of the form (set! a b) or (set! a (+ b c)). The algorithm for flattening is pretty simple. We need to have flatten_Value, flatten_Effect, and flatten_Predicate functions. Each function takes 2 arguments, a Value/Effect/Predicate (depending on the function) and a List (possibly empty) of Effects. Each of these functions returns a (possibly new, possibly reused) Value/Effect/Predicate. The list of effects is modified to add the new Effects required to simplify the give Value/Effect/Predicate expression. For example (with liberties taken to make the syntax look nicer than what I can manage in C):
 
-We're still missing a ton of stuff. The big ones are conditionals, jumps, and memory operations. Right now, all we can do is basic arithmetic in a parenthesized assembly language.
+flatten_Value_SimpleValue(SimpleVal *sval, List<Effect> effects) { return sval; }  (effects is unchanged)
+
+A slightly more interesting case is a primcall:
+
+flatten_Value_primcall(Value_primcall *vprim, List *effects) {
+    // assume these are updating in place
+    for (Value value : vprim->value_list) {
+        value = flatten_Value(value, effects);
+    }
+    return vprim;
+}
+
+If is a bit harder, since we can't bring the side effects from Value1 and Value2 outside of the if statement.
+flatten_Value_if(Value_if *vif, List<Effect> effects) {
+    Predicate *pred = flatten_Predicate(vif->pred, effects);
+    List<Effect> effects1 = List_new();
+    Value *value1 = flatten_Value(vif->value1, effects1);
+    Value *value2 = flatten_Value(vif->value2, effects2);
+    vif->value1 = make_Value_begin(effects, value1);
+    vif->value2 = make_Value_begin(effects, value2);
+    vif->pred = pred;
+    return vif;
+}
+
+In general, we don't actually have to do anything with the list of effects, unless we're calling flatten from a "privileged" level (i.e. calling flatten on the body of a lambda or the body of a letrec). In that case, as long as the list isn't empty, we have create a new Value_begin, with the updated list of Effects.
+
+This is also a good time to flatten our Effects a bit. In flatten_Effect_begin, we have an Effect_begin struct that has a List<Effect> and an Effect. In the inner call to flatten_Effect(effect), we can pass in the list of effects we alreay have, then return the value returned by flatten_Effect. As noted above, the trickiest case is conditionals, since we can never shift a set! from a consequent case before the if.

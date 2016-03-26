@@ -4,7 +4,8 @@
 enum value_t {
     BOOLEAN_T,
     INTEGER_T,
-    IDENTIFIER_T
+    IDENTIFIER_T,
+    LABEL_T
 };
 
 struct Value {
@@ -57,6 +58,7 @@ struct Program {
 struct Value *make_integer_value(int val);
 struct Value *make_boolean_value(int val);
 struct Value *make_identifier_value(char *val);
+struct Value *make_label_value(char *val);
 void free_value(struct Value *val);
 struct Binop *make_binop(char *rator, struct Value *val1, struct Value *val2);
 void free_binop(struct Binop *binop);
